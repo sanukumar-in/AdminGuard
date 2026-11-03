@@ -15,6 +15,7 @@ export const Dashboard = () => {
     
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
 
     const filteredProducts = useMemo(() => {
         return products.filter((product) =>
@@ -22,19 +23,32 @@ export const Dashboard = () => {
     }, [products, searchQuery]);
 
     useEffect(() => {
+        const controller = new AbortController();
+
         const fetchData = async () => {
             try {
-                const response = await axios.get('https://fakestoreapi.com/products');
+                setLoading(true);
+                let url = 'https://fakestoreapi.com/products';
+                if (selectedCategory !== 'all') {
+                    url = `https://fakestoreapi.com/products/category/${selectedCategory}`;
+                }
+                const response = await axios.get(url, { signal: controller.signal });
                 setProducts(response.data);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchData();
-    }, []);
+
+        return () => {
+            controller.abort();
+        };
+    }, [selectedCategory]);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     useEffect(() => {
@@ -44,7 +58,12 @@ export const Dashboard = () => {
     }, [loading]);
 
     if (loading) {
-        return <div className="p-10 text-xl">Loading products...</div>;
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+                <span className="sr-only">Loading...</span>
+            </div>
+        )
     }
 
         return (
@@ -60,6 +79,20 @@ export const Dashboard = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+            </div>
+
+            <div className="mb-4">
+                <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                    <option value="all">All Categories</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="jewelery">Jewelery</option>
+                    <option value="men's clothing">Men's Clothing</option>
+                    <option value="women's clothing">Women's Clothing</option>
+                </select>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
