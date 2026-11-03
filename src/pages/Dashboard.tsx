@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { ProductCard } from '../components/ProductCard';
 
@@ -20,7 +20,7 @@ export const Dashboard = () => {
         return products.filter((product) =>
             product.title.toLowerCase().includes(searchQuery.toLowerCase()))
     }, [products, searchQuery]);
-    
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -36,6 +36,13 @@ export const Dashboard = () => {
         fetchData();
     }, []);
 
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        if (!loading) {
+            searchInputRef.current?.focus();
+        }
+    }, [loading]);
+
     if (loading) {
         return <div className="p-10 text-xl">Loading products...</div>;
     }
@@ -47,6 +54,7 @@ export const Dashboard = () => {
             <div className="mb-8">
                 <input
                     type="text"
+                    ref={searchInputRef}
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
