@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { ProductCard } from '../components/ProductCard';
 
@@ -16,9 +16,11 @@ export const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredProducts = products.filter((product) =>
-        product.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProducts = useMemo(() => {
+        return products.filter((product) =>
+            product.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    }, [products, searchQuery]);
+    
     useEffect(() => {
         const fetchData = async () => {
             try {
