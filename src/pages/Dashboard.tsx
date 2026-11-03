@@ -14,7 +14,11 @@ export const Dashboard = () => {
     const [products, setProducts] = useState<Product[]>([]);
     
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
+    const filteredProducts = products.filter((product) =>
+        product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -36,10 +40,20 @@ export const Dashboard = () => {
 
         return (
         <div className="p-10 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Product Listing</h1>
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">Product</h1>
+            
+            <div className="mb-8">
+                <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                     <ProductCard 
                         key={product.id} 
                         title={product.title}
