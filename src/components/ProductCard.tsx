@@ -1,13 +1,19 @@
+import { useNavigate } from 'react-router-dom';
+
 interface ProductCardProps {
+    id: number,
     title: string;
     price: number;
     image: string;
     category: string;
 }
 
-export const ProductCard = ({ title, price, image, category }: ProductCardProps) => {
+export const ProductCard = ({ id, title, price, image, category }: ProductCardProps) => {
+    const navigate = useNavigate();
+
     return (
-        <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition border border-gray-100">
+        <div onClick={() => navigate(`/product/${id}`)}
+         className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition border border-gray-100">
             <div className="h-40 flex items-center justify-center mb-4 bg-gray-50 rounded p-2">
                 <img src={image} alt={title} className="max-h-full object-contain" />
             </div>
