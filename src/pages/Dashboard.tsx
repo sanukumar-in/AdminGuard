@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { ProductCard } from '../components/ProductCard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface Product {
     id: number;
@@ -15,7 +15,9 @@ export const Dashboard = () => {
     const [products, setProducts] = useState<Product[]>([]);
     
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const searchQuery = searchParams.get('search') || '';
     const [selectedCategory, setSelectedCategory] = useState('all');
 
     const filteredProducts = useMemo(() => {
@@ -92,7 +94,9 @@ export const Dashboard = () => {
                     ref={searchInputRef}
                     placeholder="Search products..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={
+                        (e) => setSearchParams({ search: e.target.value })
+                    }
                     className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </div>
