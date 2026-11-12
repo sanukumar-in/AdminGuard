@@ -1,15 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import axios from 'axios';
 import { ProductCard } from '../components/ProductCard';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
-interface Product {
-    id: number;
-    title: string;
-    price: number;
-    category: string;
-    image: string;
-}
+import {Product, productService} from '../services/productService';
+import { getErrorMessage } from '../services/errorHandler';
 
 export const Dashboard = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -19,26 +12,36 @@ export const Dashboard = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const searchQuery = searchParams.get('search') || '';
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [error, setError] = useState<string | null>(null);
 
     const filteredProducts = useMemo(() => {
         return products.filter((product) =>
             product.title.toLowerCase().includes(searchQuery.toLowerCase()))
     }, [products, searchQuery]);
 
-    useEffect(() => {
+        useEffect(() => {
         const controller = new AbortController();
 
         const fetchData = async () => {
             try {
                 setLoading(true);
-                let url = 'https://fakestoreapi.com/products';
+                setError(null);
+                let productsData;
                 if (selectedCategory !== 'all') {
-                    url = `https://fakestoreapi.com/products/category/${selectedCategory}`;
+                    productsData = await productService.getByCategory(selectedCategory);
+                } else {
+                    productsData = await productService.getAll();
                 }
-                const response = await axios.get(url, { signal: controller.signal });
-                setProducts(response.data);
-            } catch (error) {
-                console.error("Error fetching data:", error);
+                
+                setProducts(productsData);
+            } catch (error: any) {
+                if (error.code === 'ERR_CANCELED') {
+                    console.log("Previous request cancelled. Fetching new data...");
+                } else {
+                    const errorMessage = getErrorMessage(error);
+                    setError(errorMessage);
+                    console.error("Error fetching data:", error);
+                }
             } finally {
                 if (!controller.signal.aborted) {
                     setLoading(false);
@@ -74,6 +77,16 @@ export const Dashboard = () => {
                 <span className="sr-only">Loading...</span>
             </div>
         )
+    }
+
+    if (error) {
+        return (
+            <div className="p-10">
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <p className="text-red-600 font-medium">{error}</p>
+                </div>
+            </div>
+        );
     }
 
         return (

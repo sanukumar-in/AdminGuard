@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-interface Product {
-    id: number;
-    title: string;
-    price: number;
-    description: string;
-    category: string;
-    image: string;
-}
+import { productService, Product } from '../services/productService';
+import { getErrorMessage } from '../services/errorHandler';
 
 export const ProductDetails = () => {
     const { id } = useParams();
@@ -17,13 +9,18 @@ export const ProductDetails = () => {
     
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+        useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`https://fakestoreapi.com/products/${id}`);
-                setProduct(response.data);
+                setError(null);
+                setLoading(true);
+                const data = await productService.getById(id);
+                setProduct(data);
             } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                setError(errorMessage);
                 console.error("Failed to fetch product:", error);
             } finally {
                 setLoading(false);
@@ -34,6 +31,16 @@ export const ProductDetails = () => {
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-xl text-gray-500">Loading product details...</div>;
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-10">
+                <div className="bg-red-50 border border-red-200 p-6 rounded-lg max-w-md">
+                    <p className="text-red-600 font-medium text-center">{error}</p>
+                </div>
+            </div>
+        );
     }
 
     if (!product) {
