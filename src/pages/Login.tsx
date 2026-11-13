@@ -27,7 +27,7 @@ export const Login = () => {
     const onSubmit = (data: LoginFormData) => {
         if(data.email==="admin@gmail.com" &&data.password === "Admin213"){
             localStorage.setItem("authToken", "uradmin");
-            navigate("/dashboard");
+            navigate("/app");
         }
         else{
             alert("Invalid credentials. Please try again.");
