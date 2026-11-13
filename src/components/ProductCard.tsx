@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
@@ -8,7 +9,7 @@ interface ProductCardProps {
     category: string;
 }
 
-export const ProductCard = ({ id, title, price, image, category }: ProductCardProps) => {
+export const ProductCard = React.memo(({ id, title, price, image, category }: ProductCardProps) => {
     const navigate = useNavigate();
 
     return (
@@ -22,4 +23,4 @@ export const ProductCard = ({ id, title, price, image, category }: ProductCardPr
             <p className="text-blue-600 font-bold mt-1">${price}</p>
         </div>
     );
-};
+});
