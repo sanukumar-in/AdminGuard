@@ -3,6 +3,7 @@ import { ProductCard } from '../components/ProductCard';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {Product, productService} from '../services/productService';
 import { getErrorMessage } from '../services/errorHandler';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const Dashboard = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -11,13 +12,25 @@ export const Dashboard = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
     const searchQuery = searchParams.get('search') || '';
+    const [inputValue, setInputValue] = useState(searchQuery);
+
+    const debouncedSearch = useDebounce(inputValue, 500);
+
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (debouncedSearch) {
+            setSearchParams({ search: debouncedSearch });
+        } else {
+            setSearchParams({}); // 👈 This removes ?search= from the URL completely
+        }
+    }, [debouncedSearch, setSearchParams]);
+
     const filteredProducts = useMemo(() => {
         return products.filter((product) =>
-            product.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    }, [products, searchQuery]);
+            product.title.toLowerCase().includes(debouncedSearch.toLowerCase()))
+    }, [products, debouncedSearch]);
 
         useEffect(() => {
         const controller = new AbortController();
@@ -106,9 +119,9 @@ export const Dashboard = () => {
                     type="text"
                     ref={searchInputRef}
                     placeholder="Search products..."
-                    value={searchQuery}
+                    value={inputValue}
                     onChange={
-                        (e) => setSearchParams({ search: e.target.value })
+                        (e) => setInputValue(e.target.value)
                     }
                     className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -128,6 +141,19 @@ export const Dashboard = () => {
                 </select>
             </div>
             
+                   {filteredProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-gray-200 col-span-full">
+                <div className="text-5xl mb-4">🔍</div>
+                <h3 className="text-lg font-semibold text-gray-700">No products found</h3>
+                <p className="text-gray-500 mb-4">We couldn't find anything matching "{searchQuery}"</p>
+                <button 
+                    onClick={() => setSearchParams({})}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                    Clear Search
+                </button>
+            </div>
+        ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
                     <ProductCard 
@@ -140,6 +166,7 @@ export const Dashboard = () => {
                     />
                 ))}
             </div>
+        )}
         </div>
     );
 };
