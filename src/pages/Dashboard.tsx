@@ -32,6 +32,18 @@ export const Dashboard = () => {
             product.title.toLowerCase().includes(debouncedSearch.toLowerCase()))
     }, [products, debouncedSearch]);
 
+        const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 8;
+
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, selectedCategory]);
+
         useEffect(() => {
         const controller = new AbortController();
 
@@ -141,31 +153,70 @@ export const Dashboard = () => {
                 </select>
             </div>
             
-                   {filteredProducts.length === 0 ? (
+        {currentProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-gray-200 col-span-full">
                 <div className="text-5xl mb-4">🔍</div>
                 <h3 className="text-lg font-semibold text-gray-700">No products found</h3>
-                <p className="text-gray-500 mb-4">We couldn't find anything matching "{searchQuery}"</p>
+                <p className="text-gray-500 mb-4">We couldn't find anything matching "{debouncedSearch}"</p>
                 <button 
-                    onClick={() => setSearchParams({})}
+                    onClick={() => {
+                        setInputValue('');
+                        setSearchParams({});
+                    }}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                 >
                     Clear Search
                 </button>
             </div>
         ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                    <ProductCard 
-                        key={product.id}
-                        id={product.id}
-                        title={product.title}
-                        price={product.price}
-                        image={product.image}
-                        category={product.category}
-                    />
-                ))}
-            </div>
+            <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {currentProducts.map((product) => (
+                        <ProductCard 
+                            key={product.id}
+                            id={product.id}
+                            title={product.title}
+                            price={product.price}
+                            image={product.image}
+                            category={product.category}
+                        />
+                    ))}
+                </div>
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-8">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition bg-white"
+                        >
+                            Previous
+                        </button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`px-4 py-2 border rounded-lg transition ${
+                                    currentPage === page
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'border-gray-300 hover:bg-gray-50 bg-white'
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition bg-white"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+            </>
         )}
         </div>
     );
