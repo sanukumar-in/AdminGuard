@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Login } from "./pages/Login";
 import { AuthGuard } from "./components/AuthGuard";
 import { NotFound } from "./pages/NotFound";
@@ -19,6 +21,7 @@ const LoadingSpinner = () => (
 const App = () => {
     return (
         <BrowserRouter>
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover />
             <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                     <Route
